@@ -134,8 +134,8 @@ myShutdownPort=8805
 mySystemUser=lucee
 myStartAtBoot=true
 myInstallConn=false
-myApacheControlLoc=/etc/init.d/httpd
-myApacheConfigLoc=/etc/httpd/conf/httpd.conf
+myApacheControlLoc=/usr/local/apache/bin/httpd
+myApacheConfigLoc=/etc/apache2/conf/httpd.conf
 # leave the bittype blank to allow the installer funtions to autodetect
 myBitType=
 
