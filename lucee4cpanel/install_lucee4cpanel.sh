@@ -494,10 +494,10 @@ function run_lucee_installer {
 	
 	# build installer command
 	myInstallCommand="$myFullinstallerPath --mode unattended ";
-	myInstallCommand+="--tomcatpass '";
-	myInstallCommand+="${myTomcatPass}' ";
+	#myInstallCommand+="--tomcatpass '";
+	#myInstallCommand+="${myTomcatPass}' ";
 	myInstallCommand+="--installdir ${myInstallDir} ";
-	myInstallCommand+="--tomcatuser $myTomcatUser ";
+	#myInstallCommand+="--tomcatuser $myTomcatUser ";
 	myInstallCommand+="--tomcatport $myTomcatPort ";
 	myInstallCommand+="--tomcatajpport $myAJPPort ";
 	myInstallCommand+="--tomcatshutdownport $myShutdownPort ";
