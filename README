@@ -1,0 +1,34 @@
+The Lucee4cPanel project makes it easy for any hosting company to offer Lucee
+as a value-added service to their cPanel services.
+
+Set your hosting company apart from the hosting crowd and give your clients
+the gift of the open-source CFML language!
+
+###############################################################################
+# Building Lucee4cPanel                                                       #
+###############################################################################
+
+To build the Lucee4cPanel .run file, download this repository and run the
+following command on any CentOS-based server:
+
+# cd lucee4cpanel/
+# ./make_lucee4cpanel.sh
+
+This will produce a self-extracting lucee4cPanel installer that you may run
+on any system that has WHM/cPanel 11.34 installed on it. Other versions of
+WHM/cPanel may function, but only 11.34 has been tested so far.
+
+###############################################################################
+# Support                                                                     #
+###############################################################################
+
+Documentation for the Lucee4cPanel project is available on the GitHub Wiki:
+https://github.com/utdream/Lucee4cPanel/wiki
+
+Free support for Lucee4cPanel is available through the Lucee Community. Please
+post questions to the Lucee Mailing List:
+http://groups.google.com/group/lucee
+
+Commercial Support through Lucee Technologies is also available should you
+require direct support from a Lucee System Administrator:
+http://www.getlucee.com/

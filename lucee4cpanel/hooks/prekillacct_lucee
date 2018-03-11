@@ -1,0 +1,77 @@
+##############################################################################
+# package:              prekillacct_lucee
+# author:               Jordan Michaels (jordan@viviotech.net)
+# license:              LGPL 3.0
+#                       http://www.opensource.org/licenses/lgpl-3.0.html
+#
+##############################################################################
+my %OPTS = @ARGV;
+my $username = $OPTS{'user'};
+
+print "\n";
+&usercleanup;
+#&cleardomains;
+
+sub usercleanup {
+
+	print "  [LUCEE] Removing user from lucee group...";
+	my $result = `gpasswd -d $username lucee`;
+	my $commandsuccessful=$?;
+	if ( $commandsuccessful == 0 ) {
+		print "[SUCCESS]\n";
+	} else {
+		print "[FAIL]\n";
+		print "  [LUCEE] Command Failed: 'gpasswd -d $username lucee'\n";
+		print "  [LUCEE] Response Code: $commandsuccessful\n";
+		print "  [LUCEE] Command Response: $result\n";
+	}
+
+	print "  [LUCEE] Removing lucee from user group...";
+	my $result = `gpasswd -d lucee $username`;
+	my $commandsuccessful=$?;
+	if ( $commandsuccessful == 0 ) {
+	        print "[SUCCESS]\n";
+	} else {
+	        print "[FAIL]\n";
+	        print "  [LUCEE] Command Failed: 'gpasswd -d lucee $username'\n";
+		print "  [LUCEE] Response Code: $commandsuccessful\n";
+	        print "  [LUCEE] Command Response: $result\n";
+	}
+}
+
+sub cleardomains {
+	# These will be customized during the Lucee4cPanel install proces...
+	my $tomcatuser="tomcat_api_user";
+	my $tomcatpass="tomcat_api_pass";
+
+	# get a list of domains owned by the user
+	my $cmd="grep \": $username\" /etc/userdomains | cut -d: -f1";
+	my $result=`$cmd`;
+
+	# the result should be a list of domains separated by line feeds:
+	# domain1.com
+	# domain2.com
+	# etc...
+
+	# now take the last and parse it into an array
+	my @domains = split /\n/, $result;
+
+	# now loop over the array telling Tomcat to remove each one as we go
+	# it won't matter if the domain is actually present in Tomcat or not
+
+	foreach my $domain (@domains) {
+	        print "  [LUCEE] Flushing Context \"$domain\"... ";
+	        my $cmd="curl -s -u $tomcatuser:$tomcatpass http://localhost:8888/host-manager/text/remove?name=$domain";
+	        my $result = `$cmd`;
+		my $commandsuccessful=$?;
+		if ( $commandsuccessful == 0 ) {
+			print "[SUCCESS]\n";
+		} else {
+			print "[FAIL]\n";
+	                print "  [LUCEE] Command Attempted: '$cmd'\n";
+	                print "  [LUCEE] Command Failure: $!\n";
+	                print "  [LUCEE] Command Code: $?\n";
+	                print "  [LUCEE] Command Response: $result\n";
+		} # close if
+	} # close foreach
+} # close sub

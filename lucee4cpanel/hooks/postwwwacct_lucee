@@ -1,0 +1,226 @@
+##############################################################################
+# package:              postwwwacct_lucee
+# author:               Jordan Michaels (jordan@viviotech.net)
+#			Peter Amiri (bpamiri@gmail.com)
+# license:              LGPL 3.0
+#                       http://www.opensource.org/licenses/lgpl-3.0.html
+#
+##############################################################################
+my %OPTS = @ARGV;
+
+print "\n";
+&configlucee;
+&rebuildapache;
+&checkpassword;
+
+sub configlucee {
+	# This subroutine configures users and permissions for the new Lucee directories
+	# that need to exist in the user's directory in order to support CFML development
+	
+	my $username = $OPTS{'user'}; 
+	
+	# Create WEB-INF directory
+	print "  [LUCEE] creating directory: /home/$username/public_html/WEB-INF\n";
+	mkdir "/home/$username/public_html/WEB-INF",0770;
+	
+	# Set directory ownership to username:lucee
+	my $uid = getpwnam("$username");
+	my $gid = getgrnam('lucee');
+
+	print "  [LUCEE] change directory ownership: chown $uid,$gid,''/home/$username/public_html/WEB-INF''\n";
+	chown $uid,$gid,"/home/$username/public_html/WEB-INF";
+
+	print "  [LUCEE] change directory permissions: chmod 0770,''/home/$username/public_html/WEB-INF''\n";
+	chmod 0770,"/home/$username/public_html/WEB-INF";
+
+	print "  [LUCEE] change directory permissions: chmod 0775,''/home/$username/public_html''\n";
+        chmod 0775,"/home/$username/public_html";
+
+        print "  [LUCEE] adding lucee to user group...";
+	my $result = `gpasswd -a lucee $username`;
+	my $commandsuccessful=$?;
+        if ( $commandsuccessful == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Failed: 'gpasswd -a lucee $username'\n";
+		print "  [LUCEE] Response Code: $commandsuccessful\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+        print "  [LUCEE] adding user to lucee group...";
+	my $result = `gpasswd -a $username lucee`;
+	my $commandsuccessful=$?;
+        if ( $commandsuccessful == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Failed: 'gpasswd -a $username lucee'\n";
+                print "  [LUCEE] Response Code: $commandsuccessful\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }	
+}
+
+sub rebuildapache {
+	# This subroutine rebuilds Apache to make sure new Lucee configs take effect
+	
+	# customize command if needed...
+	my $rebuildcommand ='/scripts/rebuildhttpdconf';
+	
+	# if the apache rebuild script exists, run it
+	if ( -e $rebuildcommand ) {
+		# capture the response from both STDOUT and STDERR
+		print "  [LUCEE] attampting to rebuild Apache config...";
+		my $rebuildresponse = `$rebuildcommand 2>&1`;
+		my $commandsuccessful = $?;
+
+		if (  $commandsuccessful == 0 ) {
+			print "[SUCCESS]\n";
+		} else {
+			print "[FAIL]\n";
+			print "  [LUCEE] Command Response:\n";
+	                print "  [LUCEE] Response Code: $commandsuccessful\n";
+			print "  [LUCEE] $rebuildresponse\n";
+		}
+	} else {
+		print "  [LUCEE] Error: Cannot find $rebuildcommand !\n";
+	}
+}
+
+sub checkpassword {
+	# this subroutine checks the provided passwrod to see if it can be used
+	# in the process to automatically set the admin password of the Lucee
+	# administrator.
+	my $thepw = $OPTS{'pass'};
+	
+	if ( $thepw =~ m/[^\w\s]/ ) {
+		# if the password contains anything that is not part of the
+		# "word" group (\w) or "space" group (\s) then throw a warning
+		# and don't run the reset subroutines
+		print "\n";
+		print "  [WARNING!] Password Contains Symbols. Cannot automatically configure Lucee Admin Password!\n";
+		print "  [WARNING!] Please update the password for this Lucee Administrator manually.\n";
+	} else {
+		# if the password is good, go ahead and call the additional subroutines
+		&startcontext;
+		&setluceepw;
+	}
+}
+
+sub startcontext {
+        # this subroutine starts the new Lucee context in the new site
+        # most importantly, creating the new context creates the files
+        # we need in order to customize the password for this new context
+
+	# start out by restarting apache - specifically to avoid errors
+	print "  [LUCEE] Preparing Apache For New Context...";
+        my $cmd = "/usr/local/cpanel/scripts/restartsrv httpd";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS] \n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+
+        my $thedomain = $OPTS{'domain'};
+
+        # start by using curl to hit the new domain
+        print "  [LUCEE] Starting new Lucee Context...";
+        my $cmd = "(crontab -l ; echo \"* * * * * curl --connect-timeout 10 --max-time 30 $thedomain/index.cfm;crontab -l > crontab.tmp;sed -i '\$ d' crontab.tmp;cat crontab.tmp | crontab - ;rm -f crontab.tmp\") | crontab -";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS] \n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+}
+
+sub setluceepw {
+        # This subroutine resets the lucee web administrator password
+        # for this new site to match the cPanel password.
+
+        my $thepw = $OPTS{'pass'};
+        my $username = $OPTS{'user'};
+        my $thedomain = $OPTS{'domain'};
+	my $timeout = 120;
+
+        # First make sure the file we need has been created
+        my $luceexml = "/home/$username/public_html/WEB-INF/lucee/lucee-web.xml.cfm";
+        print "  [LUCEE] Waiting for context to start: ";
+        while ( $count <= $timeout ) {
+                # wait up to 30 seconds for our file to be created
+
+                if ( -e $luceexml ) {
+                        # if our file exists we can stop waiting for it
+                        print "[FOUND]\n";
+                        last;
+                } else {
+                        print " .";
+                        sleep(2);
+                }
+                if ( $count == $timeout ) {
+                        print "[TIMEOUT]\n";
+                }
+		$count++;
+        }
+
+	# now that we've found the file, allow a couple seconds
+	# for the file to finish being written (avoids errors)
+	sleep(2);
+
+        # We need to reset the password for the existing
+        # Lucee Web Administrator. We can do this by updating
+        # the web config for this admin and setting the password
+        # to null. This will make the Lucee Web Administrator
+        # prompt for a new password the next time it is hit, 
+        # which will be immediately after we make this change.
+
+        print "  [LUCEE] Updating Lucee Web Admin XML File...";
+
+        # use sed to replace the existing default
+        if ( -e $luceexml ) {
+                my $cmd="sed -i 's/<lucee-configuration version=\"2.0\">/<lucee-configuration version=\"2.0\" password=\"\">/g' $luceexml";
+                my $result = `$cmd`;
+                if ( $? == 0 ) {
+                        print "[SUCCESS]\n";
+                } else {
+                        print "[FAIL]\n";
+                        print "  [LUCEE] Command Attempted: '$cmd'\n";
+                        print "  [LUCEE] Command Failure: $!\n";
+                        print "  [LUCEE] Command Code: $?\n";
+                        print "  [LUCEE] Command Response: $result\n";
+                }
+        } else {
+                print "[ERROR]\n";
+                print "     - File: '/home/${username}/public_html/WEB-INF/lucee/lucee-web.xml.cfm' does not exist.\n";
+        }
+
+	# give the edit process a coupld seconds to complete before
+	# we try the post (avoids errors)
+	sleep(2);
+
+        # DONE updating Lucee Web Config XML #
+
+        print "  [LUCEE] Updating Lucee Web Admin User Preferences...";
+        # use curl to post user-selected password to Lucee Web Admin
+        my $cmd = "curl --data \"new_password=$thepw&new_password_re=$thepw\" http://$thedomain/lucee/admin/web.cfm";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+
+        # DONE Setting New Lucee Web Admin Password #
+}

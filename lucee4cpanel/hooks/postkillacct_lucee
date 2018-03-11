@@ -1,0 +1,102 @@
+##############################################################################
+# package:              postkillacct_lucee
+# author:               Jordan Michaels (jordan@viviotech.net)
+# license:              LGPL 3.0
+#                       http://www.opensource.org/licenses/lgpl-3.0.html
+#
+##############################################################################
+my %OPTS = @ARGV;
+my $username = $OPTS{'user'};
+
+print "\n";
+&rebuildapache;
+&clearmemory;
+&restartlucee;
+
+sub rebuildapache {
+        # need to rebuild Apache to make sure new Lucee configs take effect
+
+        # customize command if needed...
+        my $rebuildcommand ='/scripts/rebuildhttpdconf';
+
+        # if the apache rebuild script exists, run it
+        if ( -e $rebuildcommand ) {
+                # capture the response from both STDOUT and STDERR
+                print "  [LUCEE] attampting to rebuild Apache config...";
+                my $rebuildresponse = `$rebuildcommand 2>&1`;
+                my $commandsuccessful = $?;
+
+                if (  $commandsuccessful == 0 ) {
+                        print "[SUCCESS]\n";
+                } else {
+                        print "[FAIL]\n";
+                        print "  [LUCEE] Command Response:\n";
+                        print "  [LUCEE] Response Code: $commandsuccessful\n";
+                        print "  [LUCEE] $rebuildresponse\n";
+                }
+        } else {
+                print "  [LUCEE] Error: Cannot find $rebuildcommand !\n";
+        }
+}
+
+sub clearmemory {
+        # this subroutine clears out the systems buffers to give Lucee/Tomcat
+        # the best chance of restarting
+        print "  [LUCEE] Flushing out memory buffers...";
+
+        my $cmd="sync; echo 3 > /proc/sys/vm/drop_caches";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+
+}
+
+sub restartlucee {
+        # need to restart lucee to clear out this site from the lucee config
+        print "  [LUCEE] Shutting down Lucee Server...";
+	my $cmd="/opt/lucee/lucee_ctl forcequit";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+
+        sleep(2);
+
+        print "  [LUCEE] Scheduling Lucee Server startup...";
+
+	# We use cron to do the start below because for whatever reason, Lucee will not
+	# properly when the start command is issued via PERL, so we issue the start cmd
+	# via crontab instead.
+	#
+	# command breakdown:
+	# crontab -l lists out the existing crontab before we add our start line
+	# echo adds the rather complex cronjob to run every minute (so lucee server starts back up as quickly as possible
+	# inside the cronjob itself is the Lucee restart command
+	# then we list out the cron job list and remove the last line with sed (the line that contains our start cmd)
+	# save the new crontab and remove the tmp file we created
+	
+	my $cmd="(crontab -l ; echo \"* * * * * /opt/lucee/lucee_ctl start;crontab -l > crontab.tmp;sed -i '\$ d' crontab.tmp;cat crontab.tmp | crontab - ;rm -f crontab.tmp\") | crontab -";
+        my $result = `$cmd`;
+        if ( $? == 0 ) {
+                print "[SUCCESS]\n";
+        } else {
+                print "[FAIL]\n";
+                print "  [LUCEE] Command Attempted: '$cmd'\n";
+                print "  [LUCEE] Command Failure: $!\n";
+                print "  [LUCEE] Command Code: $?\n";
+                print "  [LUCEE] Command Response: $result\n";
+        }
+}
