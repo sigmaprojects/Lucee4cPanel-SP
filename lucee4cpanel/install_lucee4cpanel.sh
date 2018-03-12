@@ -79,9 +79,9 @@ EOF
 #    --installconn       BOOLEAN: Install Apache Connector, mod_proxy, for
 #                        lucee (default: true)
 #    --apachecontrol     set "apachectl" location (default:
-#                        /etc/init.d/httpd)
+#                        /usr/local/apache/bin/apachectl)
 #    --apacheconfig      set the location of the apache config file
-#                        (default: /etc/httpd/conf/httpd.conf)
+#                        (default: /etc/apache2/conf.d/lucee.conf)
 
 
 
@@ -134,8 +134,8 @@ myShutdownPort=8805
 mySystemUser=lucee
 myStartAtBoot=true
 myInstallConn=false
-myApacheControlLoc=/usr/local/apache/bin/httpd
-myApacheConfigLoc=/etc/apache2/conf/httpd.conf
+myApacheControlLoc=/usr/local/apache/bin/apachectl
+myApacheConfigLoc=/etc/apache2/conf.d/lucee.conf
 # leave the bittype blank to allow the installer funtions to autodetect
 myBitType=
 
@@ -367,6 +367,7 @@ function test_input {
                 exit 1;
 	fi
         # check the apache config file
+        touch "${myApacheConfigLoc}";
         if [[ ! -f ${myApacheConfigLoc} ]] || [[ ! -w ${myApacheConfigLoc} ]]; then
                 echo "";
                 echo "* [FATAL] Apache config doesn't exist or cannot be written to.";
