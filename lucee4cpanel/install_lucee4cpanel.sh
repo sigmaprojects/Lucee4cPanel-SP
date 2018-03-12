@@ -136,6 +136,7 @@ myStartAtBoot=true
 myInstallConn=true
 myApacheControlLoc=/usr/local/apache/bin/apachectl
 myApacheConfigLoc=/etc/apache2/conf.d/lucee.conf
+myApacheModulesLoc=//usr/lib64/apache2/modules
 # leave the bittype blank to allow the installer funtions to autodetect
 myBitType=
 
@@ -508,6 +509,8 @@ function run_lucee_installer {
     # added required `luceepass` argument
     myInstallCommand+="--luceepass '";
     myInstallCommand+="${myTomcatPass}' ";
+    myInstallCommand+="--apachemodulesloc ${myApacheModulesLoc} "
+    myInstallCommand+="--apacheconfigloc ${myApacheConfigLoc} "
 
         if [ $debug ]; then
                 echo "* [DEBUG] myInstallCommand: $myInstallCommand ";
