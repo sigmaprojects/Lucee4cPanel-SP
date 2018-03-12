@@ -504,6 +504,9 @@ function run_lucee_installer {
 	myInstallCommand+="--systemuser $mySystemUser ";
 	myInstallCommand+="--startatboot $myStartAtBoot ";
 	myInstallCommand+="--installconn $myInstallConn ";
+    # added required `luceepass` argument
+    myInstallCommand+="--luceepass '";
+    myInstallCommand+="${myTomcatPass}' ";
 
         if [ $debug ]; then
                 echo "* [DEBUG] myInstallCommand: $myInstallCommand ";
