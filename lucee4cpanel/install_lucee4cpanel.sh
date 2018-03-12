@@ -191,7 +191,7 @@ while [ $# -gt 0 ]; do
             ;;
 	--installconn)
             #if ${2:=true}; then
-                # myInstallConn=true;
+                myInstallConn=true;
             #else
                 myInstallConn=false;
             #fi
@@ -574,7 +574,7 @@ function test_cpanel_plugin {
         fi
 
 	# test plugin front-end directory
-	mycPanelPluginFEDirectory="/usr/local/cpanel/base/frontend/default/";
+	mycPanelPluginFEDirectory="/usr/local/cpanel/base/frontend/paper_lantern/";
         if [[ ! -d $mycPanelPluginFEDirectory ]] || [[ ! -w $mycPanelPluginFEDirectory ]]; then
                 if [ $debug ]; then
                         if [[ ! -d $mycPanelPluginFEDirectory ]]; then
