@@ -133,7 +133,7 @@ myAJPPort=8809
 myShutdownPort=8805
 mySystemUser=lucee
 myStartAtBoot=true
-myInstallConn=false
+myInstallConn=true
 myApacheControlLoc=/usr/local/apache/bin/apachectl
 myApacheConfigLoc=/etc/apache2/conf.d/lucee.conf
 # leave the bittype blank to allow the installer funtions to autodetect
