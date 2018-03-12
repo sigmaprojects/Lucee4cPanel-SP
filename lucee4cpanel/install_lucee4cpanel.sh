@@ -762,11 +762,11 @@ function install_apache_config {
 	myApacheConfigFile="${basedir}/apache/lucee.conf";
 	# copy apache config file to cPanel location
 	echo -n "* Installing New Apache Config File for Lucee Server...";
-	cp $myApacheConfigFile /usr/local/apache/conf/userdata/ > /dev/null;
+	cp $myApacheConfigFile /etc/apache2/conf.d/ > /dev/null;
         local commandSuccessful=$?;
 
         if [ $debug ]; then
-                echo "* [DEBUG] Command: 'cp $myApacheConfigFile /usr/local/apache/conf/userdata/ > /dev/null'";
+                echo "* [DEBUG] Command: 'cp $myApacheConfigFile /etc/apache2/conf.d/ > /dev/null'";
                 echo "* [DEBUG] Exit Code: ${commandSuccessful}";
         fi
 
@@ -776,7 +776,7 @@ function install_apache_config {
         else
                 echo "[FAIL]";
                 echo "";
-                echo "* [FATAL] Failed to install apache config file to /usr/local/apache/conf/userdata/";
+                echo "* [FATAL] Failed to install apache config file to /etc/apache2/conf.d/";
                 echo "* Script exit code: ${commandSuccessful}";
                 echo "";
                 exit 1;
