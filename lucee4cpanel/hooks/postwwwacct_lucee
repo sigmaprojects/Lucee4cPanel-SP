@@ -135,7 +135,8 @@ sub startcontext {
 
         # start by using curl to hit the new domain
         print "  [LUCEE] Starting new Lucee Context...";
-        my $cmd = "(crontab -l ; echo \"* * * * * curl --connect-timeout 10 --max-time 30 $thedomain/index.cfm;crontab -l > crontab.tmp;sed -i '\$ d' crontab.tmp;cat crontab.tmp | crontab - ;rm -f crontab.tmp\") | crontab -";
+        #my $cmd = "(crontab -l ; echo \"* * * * * curl --connect-timeout 10 --max-time 30 $thedomain/index.cfm;crontab -l > crontab.tmp;sed -i '\$ d' crontab.tmp;cat crontab.tmp | crontab - ;rm -f crontab.tmp\") | crontab -";
+        my $cmd = "(crontab -l ; echo \"* * * * * curl --connect-timeout 10 --resolve $thedomain:80:127.0.0.1 --max-time 30 $thedomain/index.cfm;crontab -l > crontab.tmp;sed -i '\$ d' crontab.tmp;cat crontab.tmp | crontab - ;rm -f crontab.tmp\") | crontab -";
         my $result = `$cmd`;
         if ( $? == 0 ) {
                 print "[SUCCESS] \n";
@@ -216,7 +217,8 @@ sub setluceepw {
 
         print "  [LUCEE] Updating Lucee Web Admin User Preferences...";
         # use curl to post user-selected password to Lucee Web Admin
-        my $cmd = "curl --data \"new_password=$thepw&new_password_re=$thepw\" http://$thedomain/lucee/admin/web.cfm";
+        #my $cmd = "curl --data \"new_password=$thepw&new_password_re=$thepw\" http://$thedomain/lucee/admin/web.cfm";
+        my $cmd = "curl --resolve $thedomain:80:127.0.0.1 --data \"new_password=$thepw&new_password_re=$thepw\" http://$thedomain/lucee/admin/web.cfm";
         my $result = `$cmd`;
         if ( $? == 0 ) {
                 print "[SUCCESS]\n";
