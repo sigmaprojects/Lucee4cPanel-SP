@@ -1,0 +1,10 @@
+{
+	"icon" : "icon-48x48.png",
+	"group_id" : "software",
+	"order" : 99,
+	"name" : "Lucee Admin",
+	"type" : "link",
+	"id" : "lucee_plugin",
+	"uri" : "/3rdparty/lucee_plugin/index.live.php",
+	"target" : "_blank"
+}

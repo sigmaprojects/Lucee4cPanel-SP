@@ -529,7 +529,7 @@ function test_cpanel_plugin {
 	# tests to help verify the integrity of the cPanel Lucee Plugin
 
 	# test files existance	
-	mycPanelPluginFile="${basedir}/cpanel/plugins/lucee_plugin.cpanelplugin";
+	mycPanelPluginFile="${basedir}/cpanel/lucee_plugin/install.sh";
 	if [[ ! -f $mycPanelPluginFile ]]; then
 		echo "";
 		echo "* [FATAL] $mycPanelPluginFile does not exist and cannot be installed.";
@@ -542,7 +542,7 @@ function test_cpanel_plugin {
 		fi
 	fi
 	
-	mycPanelPluginIndex="${basedir}/cpanel/plugins/lucee_plugin/index.php";
+	mycPanelPluginIndex="${basedir}/cpanel/lucee_plugin/index.live.php";
         if [[ ! -f $mycPanelPluginIndex ]]; then
                 echo "";
                 echo "* [FATAL] $mycPanelPluginIndex does not exist.";
@@ -552,69 +552,6 @@ function test_cpanel_plugin {
         else
                 if [[ $myMode == "test" ]]; then
                         echo "* [TEST] $mycPanelPluginIndex exists as a file. ";
-                fi
-        fi
-	
-	# test for needed executables
-	mycPanelPluginRegister="/usr/local/cpanel/bin/register_cpanelplugin";
-	if [[ ! -f $mycPanelPluginRegister ]] || [[ ! -x $mycPanelPluginRegister ]]; then
-                if [ $debug ]; then
-                        if [[ ! -f $mycPanelPluginRegister ]]; then
-                                echo "* [DEBUG] $mycPanelPluginRegister is failing the file check";
-                        fi
-                        if [[ ! -x $mycPanelPluginRegister ]]; then
-                                echo "* [DEBUG] $mycPanelPluginRegister is failing the executable check";
-                        fi
-                fi
-                echo "";
-                echo "* [FATAL] $mycPanelPluginRegister does not exist or is not executable.";
-                echo "";
-                exit 1;
-        else
-                if [[ $myMode == "test" ]]; then
-                        echo "* [TEST] $mycPanelPluginRegister exists and is executable. ";
-                fi
-        fi
-
-	# test plugin front-end directory
-	mycPanelPluginFEDirectory="/usr/local/cpanel/base/frontend/paper_lantern/";
-        if [[ ! -d $mycPanelPluginFEDirectory ]] || [[ ! -w $mycPanelPluginFEDirectory ]]; then
-                if [ $debug ]; then
-                        if [[ ! -d $mycPanelPluginFEDirectory ]]; then
-                                echo "* [DEBUG] $mycPanelPluginFEDirectory is failing the directory check";
-                        fi
-                        if [[ ! -w $mycPanelPluginFEDirectory ]]; then
-                                echo "* [DEBUG] $mycPanelPluginFEDirectory is failing the writable check";
-                        fi
-                fi
-                echo "";
-                echo "* [FATAL] $mycPanelPluginFEDirectory does not exist or is not writable.";
-                echo "";
-                exit 1;
-        else
-                if [[ $myMode == "test" ]]; then
-                        echo "* [TEST] $mycPanelPluginFEDirectory exists and is writable. ";
-                fi
-        fi
-	
-	# test cPanel Plugin storage Directory
-	mycPanelPluginStorage="/usr/local/cpanel/bin/";
-        if [[ ! -d $mycPanelPluginStorage ]] || [[ ! -w $mycPanelPluginStorage ]]; then
-                if [ $debug ]; then
-                        if [[ ! -d $mycPanelPluginStorage ]]; then
-                                echo "* [DEBUG] $mycPanelPluginStorage is failing the directory check";
-                        fi
-                        if [[ ! -w $mycPanelPluginStorage ]]; then
-                                echo "* [DEBUG] $mycPanelPluginStorage is failing the writable check";
-                        fi
-                fi
-                echo "";
-                echo "* [FATAL] $mycPanelPluginStorage does not exist or is not writable.";
-                echo "";
-                exit 1;
-        else
-                if [[ $myMode == "test" ]]; then
-                        echo "* [TEST] $mycPanelPluginStorage exists and is writable. ";
                 fi
         fi
 
@@ -629,13 +566,12 @@ function install_cpanel_plugin {
 	
 	# install the front-end to the default theme
 	echo -n "* Installing cPanel lucee_plugin front-end...";
-	cp -rf ${basedir}/cpanel/plugins/lucee_plugin/ $mycPanelPluginFEDirectory > /dev/null
+
+    # test files existance  
+    mycPanelPluginFile="${basedir}/cpanel/lucee_plugin/install.sh";
+    chmod +x $mycPanelPluginFile > /dev/null
+    sh $mycPanelPluginFile
 	local commandSuccessful=$?;
-	
-	if [ $debug ]; then 
-		echo "* [DEBUG] Command: 'cp -rf ${basedir}/cpanel/plugins/lucee_plugin/ $mycPanelPluginFEDirectory > /dev/null'";
-		echo "* [DEBUG] Exit Code: ${commandSuccessful}";
-	fi
 	
 	# 0 means command executed just fine
 	if [ $commandSuccessful -eq 0 ]; then
@@ -648,72 +584,7 @@ function install_cpanel_plugin {
 		echo "";
 		exit 1;
 	fi
-	
-	# copy Lucee plugin to cPanel Plugin Storage
-	echo -n "* Copying Plugin to cPanel Storage Directory...";
-	cp $mycPanelPluginFile $mycPanelPluginStorage > /dev/null;
-	local commandSuccessful=$?;
 
-        if [ $debug ]; then
-                echo "* [DEBUG] Command: 'cp $mycPanelPluginFile $mycPanelPluginStorage > /dev/null'";
-                echo "* [DEBUG] Exit Code: ${commandSuccessful}";
-        fi
-
-        # 0 means command executed just fine
-        if [ $commandSuccessful -eq 0 ]; then
-                echo "[SUCCESS]";
-        else
-                echo "[FAIL]";
-                echo "";
-                echo "* [FATAL] Failed to copy to plugin storage directory ${mycPanelPluginStorage}";
-                echo "* Script exit code: ${commandSuccessful}";
-                echo "";
-                exit 1;
-        fi
-
-	# install the cPanel plugin for lucee
-	echo -n "* Installing cPanel plugin module...";
-	$mycPanelPluginRegister $mycPanelPluginFile > /dev/null
-	local commandSuccessful=$?;
-
-        if [ $debug ]; then
-                echo "* [DEBUG] Command: '$mycPanelPluginRegister $mycPanelPluginFile > /dev/null'";
-                echo "* [DEBUG] Exit Code: ${commandSuccessful}";
-        fi
-	
-	# 0 means command executed just fine
-        if [ $commandSuccessful -eq 0 ]; then
-                echo "[SUCCESS]";
-        else
-                echo "[FAIL]";
-                echo "";
-                echo "* [FATAL] Failed to install cPanel plugin.";
-                echo "* Command exit code: ${commandSuccessful}";
-                echo "";
-                exit 1;
-        fi
-
-	# rebuilding cpanel sprites so that the Lucee icon shows up as intended
-        echo -n "* Rebuilding cPanel Sprites to Install Lucee Icon...";
-        /usr/local/cpanel/bin/rebuild_sprites > /dev/null
-        local commandSuccessful=$?;
-
-        if [ $debug ]; then
-                echo "* [DEBUG] Command: '/usr/local/cpanel/bin/rebuild_sprites > /dev/null'";
-                echo "* [DEBUG] Exit Code: ${commandSuccessful}";
-        fi
-
-        # 0 means command executed just fine
-        if [ $commandSuccessful -eq 0 ]; then
-                echo "[SUCCESS]";
-        else
-                echo "[FAIL]";
-                echo "";
-                echo "* [FATAL] Failed to run cPanel sprite rebuild command.";
-                echo "* Command exit code: ${commandSuccessful}";
-                echo "";
-                exit 1;
-        fi
 }
 
 function test_apache_config {
