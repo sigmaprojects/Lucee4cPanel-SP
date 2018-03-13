@@ -75,7 +75,7 @@ EOF
 # commending these out for now as they are a real pain to code for. -JM
 #
 #    --systemuser        set the system user for tomcat to run under
-#                        (default: lucee)
+#                        (default: root)
 #    --installconn       BOOLEAN: Install Apache Connector, mod_proxy, for
 #                        lucee (default: true)
 #    --apachecontrol     set "apachectl" location (default:
@@ -131,12 +131,12 @@ myTomcatUser=admin
 myTomcatPort=8888
 myAJPPort=8809
 myShutdownPort=8805
-mySystemUser=lucee
+mySystemUser=root
 myStartAtBoot=true
 myInstallConn=true
 myApacheControlLoc=/usr/local/apache/bin/apachectl
 myApacheConfigLoc=/etc/apache2/conf.d/lucee.conf
-myApacheModulesLoc=//usr/lib64/apache2/modules
+myApacheModulesLoc=/usr/lib64/apache2/modules
 # leave the bittype blank to allow the installer funtions to autodetect
 myBitType=
 
